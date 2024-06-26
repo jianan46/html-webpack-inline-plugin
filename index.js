@@ -1,23 +1,19 @@
-var inline = require('inline-source')
-
-function HtmlWebpackInlinePlugin(options) {
-  // Setup the plugin instance with options...
-  this.options = options
-}
-
-HtmlWebpackInlinePlugin.prototype.apply = function(compiler) {
-  var self = this
-  compiler.plugin('compilation', function(compilation, options) {
-    compilation.plugin('html-webpack-plugin-before-html-processing', function(htmlPluginData, callback) {
-      var html = htmlPluginData.html
-      inline(html, self.options, function(err, html) {
-        if (!err) {
-          htmlPluginData.html = html
+var { inlineSource } = require('inline-source')
+class HtmlWebpackInlinePlugin {
+  apply(compiler) {
+    // 访问compilation对象
+    compiler.hooks.compilation.tap('HtmlWebpackInlinePlugin', (compilation) => {
+      HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(
+        'HtmlWebpackInlinePlugin', // 你的插件名或标识符
+        (htmlPluginData, cb) => {
+          inlineSource(htmlPluginData.html).then((html)=>{
+            htmlPluginData.html = html
+          })
+          cb(null, htmlPluginData);
         }
-        callback(null, htmlPluginData)
-      })
+      );
     });
-  });
-};
+  }
+}
 
 module.exports = HtmlWebpackInlinePlugin
